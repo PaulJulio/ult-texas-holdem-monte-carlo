@@ -1,0 +1,6 @@
+# jetbrains IDE
+.idea
+# jetbrains is happiest when it creates its own venv
+venv
+# python virtual environment I created in wsl
+monte-carlo
