@@ -8,7 +8,7 @@ for r in ranks:
     for s in suits:
         cards.append(r + s)
 # adjust the following values to test your preferred strategy
-# the ranks index of the minimum rank pair to bet preflop
+# we'll check the rank's index of the minimum rank pair to bet preflop
 # ex: 1 means bet a pair of 3s but not 2s; 9 means to bet Jacks but not Tens
 MIN_PAIR = 1
 # for the above index of ranks, if that rank is the highest card, what is the lowest card to bet preflop with
@@ -85,15 +85,15 @@ def sim_hand(player, runs):
         if prank == drank:
             ties += 1
     print(f'Cards: {player}')
-    print(f'W:{wins} L:{losses} T:{ties} R:{wins+losses+ties}')
-    print(f'W%:{wins/runs*100} L%:{losses/runs*100} T%:{ties/runs*100}')
+    print(f'W:{wins} L:{losses} T:{ties} R:{wins + losses + ties}')
+    print(f'W%:{wins / runs * 100} L%:{losses / runs * 100} T%:{ties / runs * 100}')
 
 
 def sim_card_off(rank, runs):
     # this is a convenience function to run all possibilities of the given rank with the 13 ranks in another suit
     # handy for giving odds pre-flop to build a chart for when to 4-bet
     for r in ranks:
-        hand = [rank+'s', r+'h']
+        hand = [rank + 's', r + 'h']
         sim_hand(hand, runs)
 
 
@@ -101,10 +101,9 @@ def sim_card_suited(rank, runs):
     # this is a convenience function to run all possibilities of the given rank with the 12 ranks in the same suit
     # handy for giving odds pre-flop to build a chart for when to 4-bet
     for r in ranks:
-        hand = [rank+'s', r+'s']
+        hand = [rank + 's', r + 's']
         if r != rank:
             sim_hand(hand, runs)
-
 
 
 def rank(card):
@@ -127,7 +126,7 @@ def order_hole_cards(hole_cards):
     v1 = ranks.index(r1)
     v2 = ranks.index(r2)
     if v1 < v2:
-        return[hole_cards[1], hole_cards[0]]
+        return [hole_cards[1], hole_cards[0]]
     return hole_cards
 
 
@@ -145,6 +144,40 @@ def bet_pre_flop(hole_cards):
     if suit(hole_cards[0]) == suit(hole_cards[1]):
         if PREFLOP_SUITED[high_card_index] <= low_card_index:
             return 1
+    return 0
+
+
+def bet_flop(hole_cards, table):
+    hole_cards = order_hole_cards(hole_cards)
+    combined_cards = hole_cards + table
+    hand_rank = evaluate_cards(*combined_cards)
+    # bet if you will play at least two pair
+    if hand_rank <= 3325:
+        return 1
+    # bet if you will play at least one pair
+    # AND you don't have pocket deuces
+    # need to add: AND you beat the board
+    if hand_rank <= 6185 and rank(hole_cards[0]) != '2':
+        return 1
+    # bet if your first hole card is Ten or higher and four to a flush
+    if ranks.index(rank(hole_cards[0])) >= 8:
+        flush_count = 1
+        flush_suit = suit(hole_cards[0])
+        for c in table:
+            if suit(c) == flush_suit:
+                flush_count += 1
+        if flush_count >= 4:
+            return 1
+    # bet if your second hole card is Ten or higher and four to a flush
+    if ranks.index(rank(hole_cards[1])) >= 8:
+        flush_count = 1
+        flush_suit = suit(hole_cards[1])
+        for c in table:
+            if suit(c) == flush_suit:
+                flush_count += 1
+        if flush_count >= 4:
+            return 1
+    # otherwise don't bet
     return 0
 
 
