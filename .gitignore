@@ -4,3 +4,5 @@
 venv
 # python virtual environment I created in wsl
 monte-carlo
+# sample out file
+ultimate_holdem.csv
